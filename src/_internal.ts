@@ -56,7 +56,8 @@ export function _getLocalHosts(additional: HostAddress[]): HostAddress[] {
       if (
         config.address &&
         !config.internal &&
-        !config.address.startsWith("fe80::") // Link-Local
+        !config.address.startsWith("fe80::") && // Link-Local
+        !config.address.startsWith("169.254") // reserved for Automatic Private IP Addressing
       ) {
         hosts.add(config.address);
       }

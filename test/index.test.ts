@@ -1,7 +1,8 @@
 import { Server } from "node:net";
+import { networkInterfaces } from "node:os";
 import { describe, test, expect, afterEach, vi } from "vitest";
 import { getPort, getRandomPort } from "../src";
-import { _generateRange } from "../src/_internal";
+import { _generateRange, _getLocalHosts } from "../src/_internal";
 import { blockPort } from "./utils";
 
 const isWindows = process.platform === "win32";
@@ -159,5 +160,63 @@ describe("internal tools", () => {
 
       expect(range).to.eql([]);
     });
+  });
+});
+
+vi.mock("node:os", () => {
+  return {
+    networkInterfaces: vi.fn(),
+  };
+});
+
+describe("_getLocalHosts", () => {
+  test("should return the allowed host addresses", () => {
+    vi.mocked(networkInterfaces).mockImplementation(() => ({
+      eth0: [
+        {
+          address: "192.168.1.100",
+          family: "IPv4",
+          internal: false,
+          netmask: "0",
+          mac: "0",
+          cidr: "",
+        },
+        {
+          address: "fe80::1",
+          family: "IPv6",
+          internal: false,
+          scopeid: 1,
+          netmask: "0",
+          mac: "0",
+          cidr: "",
+        },
+      ],
+      lo: [
+        {
+          address: "127.0.0.1",
+          family: "IPv4",
+          internal: true,
+          netmask: "0",
+          mac: "0",
+          cidr: "",
+        },
+        {
+          address: "169.254.0.1",
+          family: "IPv4",
+          internal: false,
+          netmask: "0",
+          mac: "0",
+          cidr: "",
+        },
+      ],
+    }));
+
+    // call the function with additional hosts
+    const additionalHosts = ["192.168.1.200"];
+    const result = _getLocalHosts(additionalHosts);
+
+    expect(result).toEqual(["192.168.1.200", "192.168.1.100"]);
+
+    vi.clearAllMocks();
   });
 });
