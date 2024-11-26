@@ -1,5 +1,5 @@
 import { Server } from "node:net";
-import { describe, test, expect, afterEach, vi } from "vitest";
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { getPort, getRandomPort } from "../src";
 import { _generateRange } from "../src/_internal";
 import { blockPort } from "./utils";
@@ -90,19 +90,24 @@ describe("random port", () => {
 });
 
 describe("errors", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
   test("invalid hostname", async () => {
-    vi.spyOn(console, "log");
     await getPort({ host: "http://localhost:8080", verbose: true }).catch(
       (error) => error,
     );
     expect(console.log).toHaveBeenCalledWith(
       '[get-port] Invalid hostname: "http://localhost:8080". Using "127.0.0.1" as fallback.',
     );
-    vi.resetAllMocks();
   });
 
   test("invalid hostname (public)", async () => {
-    vi.spyOn(console, "log");
     await getPort({
       host: "http://localhost:8080",
       verbose: true,
@@ -111,7 +116,6 @@ describe("errors", () => {
     expect(console.log).toHaveBeenCalledWith(
       '[get-port] Invalid hostname: "http://localhost:8080". Using "0.0.0.0" as fallback.',
     );
-    vi.resetAllMocks();
   });
 
   test.skipIf(isWindows)("unavailable port", async () => {
