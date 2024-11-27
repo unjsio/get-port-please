@@ -24,6 +24,11 @@ export async function getPort(
 ): Promise<PortNumber> {
   if (typeof _userOptions === "number" || typeof _userOptions === "string") {
     _userOptions = { port: Number.parseInt(_userOptions + "") || 0 };
+  } else if (
+    typeof _userOptions.port === "number" ||
+    typeof _userOptions.port === "string" // Shouldn't happen, but just in case
+  ) {
+    _userOptions.port = Number.parseInt(_userOptions.port + "") || 0;
   }
 
   const _port = Number(_userOptions.port ?? process.env.PORT);
